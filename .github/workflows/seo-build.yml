@@ -16,15 +16,13 @@ jobs:
       - name: Generate SEO artifacts
         run: |
           mkdir -p templates docs
-
           cat > templates/_head.html <<'EOF'
-<link rel="canonical" href="https://securehomegadgets.com"/>
-EOF
-
+          <link rel="canonical" href="https://securehomegadgets.com"/>
+          EOF
           cat > sitemap.xml <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>
-EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>
+          EOF
 
           cat > video-sitemap.xml <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
