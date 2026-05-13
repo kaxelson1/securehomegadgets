@@ -14,33 +14,36 @@ jobs:
           fetch-depth: 0
 
       - name: Generate SEO artifacts
+        shell: bash
         run: |
           mkdir -p templates docs
-          cat > templates/_head.html <<'EOF'
-          <link rel="canonical" href="https://securehomegadgets.com"/>
-          EOF
-          cat > sitemap.xml <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>
-          EOF
 
-          cat > video-sitemap.xml <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap-video/1.1"></urlset>
-EOF
+          printf '%s\n' \
+            '<link rel="canonical" href="https://securehomegadgets.com"/>' \
+            > templates/_head.html
 
-          cat > robots.txt <<'EOF'
-User-agent: *
-Sitemap: https://securehomegadgets.com/sitemap.xml
-EOF
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>' \
+            > sitemap.xml
 
-          cat > docs/seo.md <<'EOF'
-# SEO Build Documentation
-- Canonical: https://securehomegadgets.com
-- Sitemap: /sitemap.xml
-- Video Sitemap: /video-sitemap.xml
-- Robots: /robots.txt
-EOF
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap-video/1.1"></urlset>' \
+            > video-sitemap.xml
+
+          printf '%s\n' \
+            'User-agent: *' \
+            'Sitemap: https://securehomegadgets.com/sitemap.xml' \
+            > robots.txt
+
+          printf '%s\n' \
+            '# SEO Build Documentation' \
+            '- Canonical: https://securehomegadgets.com' \
+            '- Sitemap: /sitemap.xml' \
+            '- Video Sitemap: /video-sitemap.xml' \
+            '- Robots: /robots.txt' \
+            > docs/seo.md
 
       - name: Lighthouse audit
         run: |
