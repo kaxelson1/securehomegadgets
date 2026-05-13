@@ -4,7 +4,7 @@
   run: |
     git config user.name "automation-bot"
     git config user.email "actions@github.com"
-    git remote set-url origin https://x-access-token:${PAT}@github.com/OWNER/REPO.git
+    git remote set-url origin https://x-access-token:${PAT}@github.com/kaxelson1/securehomegadgets.git
     git checkout -b auto/seo-build
     # copy files into repo workspace or ensure they are present
     git add .
