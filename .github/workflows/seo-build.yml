@@ -1,0 +1,74 @@
+name: Full SEO Build and Push
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seo-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate SEO artifacts
+        run: |
+          mkdir -p templates docs
+
+          cat > templates/_head.html <<'EOF'
+<link rel="canonical" href="https://securehomegadgets.com"/>
+EOF
+
+          cat > sitemap.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>
+EOF
+
+          cat > video-sitemap.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap-video/1.1"></urlset>
+EOF
+
+          cat > robots.txt <<'EOF'
+User-agent: *
+Sitemap: https://securehomegadgets.com/sitemap.xml
+EOF
+
+          cat > docs/seo.md <<'EOF'
+# SEO Build Documentation
+- Canonical: https://securehomegadgets.com
+- Sitemap: /sitemap.xml
+- Video Sitemap: /video-sitemap.xml
+- Robots: /robots.txt
+EOF
+
+      - name: Lighthouse audit
+        run: |
+          npm install -g lighthouse
+          lighthouse https://securehomegadgets.com --output=json --output-path=./lighthouse.json || true
+        continue-on-error: true
+
+      - name: Link checker
+        run: |
+          npm install -g linkinator
+          linkinator https://securehomegadgets.com --quiet || true
+        continue-on-error: true
+
+      - name: Canonical verification
+        run: |
+          curl -sL https://securehomegadgets.com | grep -i '<link rel="canonical"' || echo "NO_CANONICAL_FOUND" > canonical-check.txt
+        continue-on-error: true
+
+      - name: Commit and push SEO branch
+        env:
+          PAT: ${{ secrets.COPILOT_SERVICE_PAT }}
+        run: |
+          git config user.name "automation-bot"
+          git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${PAT}@github.com/${{ github.repository }}.git
+          git checkout -B auto/seo-build
+          git add .
+          git commit -m "Full SEO build" || echo "no changes"
+          git push origin auto/seo-build --force
