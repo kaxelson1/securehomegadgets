@@ -1,0 +1,29 @@
+name: Copilot Push Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push-seo-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare files
+        run: |
+          echo "placeholder" > placeholder.txt
+
+      - name: Commit and push branch
+        env:
+          PAT: ${{ secrets.COPILOT_SERVICE_PAT }}
+        run: |
+          git config user.name "automation-bot"
+          git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${PAT}@github.com/${{ github.repository }}.git
+          git checkout -b auto/seo-build
+          git add .
+          git commit -m "initial auto/seo-build test push" || echo "no changes"
+          git push origin auto/seo-build --force
