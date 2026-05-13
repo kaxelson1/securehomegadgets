@@ -12,10 +12,12 @@ permissions:
 jobs:
   youtube-test:
     runs-on: ubuntu-latest
+
     env:
       YT_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
       YT_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
       YT_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +27,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y jq curl
+          sudo apt-get install -y jq curl ffmpeg
 
       - name: Exchange refresh token for access token
         id: token
@@ -36,32 +38,37 @@ jobs:
             -d client_secret="${YT_CLIENT_SECRET}" \
             -d refresh_token="${YT_REFRESH_TOKEN}" \
             -d grant_type=refresh_token)
+
+          echo "Raw token response:"
+          echo "$resp" | jq .
+
           access_token=$(echo "$resp" | jq -r .access_token)
           if [ -z "$access_token" ] || [ "$access_token" = "null" ]; then
-            echo "Token exchange failed: $resp"
+            echo "❌ Token exchange failed."
             exit 1
           fi
+
           echo "access_token=${access_token}" >> $GITHUB_ENV
           echo "token_response=$(echo "$resp" | jq -c .)" >> $GITHUB_OUTPUT
 
-      - name: Show token info (sanitized)
+      - name: Verify token scopes
         run: |
+          set -euo pipefail
           ACCESS_TOKEN="${{ env.access_token }}"
+          echo "Token info:"
           curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${ACCESS_TOKEN}" | jq -r .
 
       - name: Prepare test video
         run: |
-          # Create a tiny test file if none exists. Replace with your real test file path.
+          set -euo pipefail
           mkdir -p public
-          if [ ! -f public/test-video.mp4 ]; then
-            # create a small silent MP4 (requires ffmpeg). If ffmpeg not available, create a placeholder text file.
-            if command -v ffmpeg >/dev/null 2>&1; then
-              ffmpeg -f lavfi -i color=c=black:s=320x240:d=1 -f lavfi -i anullsrc -shortest -c:v libx264 -c:a aac public/test-video.mp4 -y
-            else
-              echo "test video placeholder" > public/test-video.txt
-            fi
-          fi
+          ffmpeg -f lavfi -i color=c=black:s=320x240:d=1 \
+                 -f lavfi -i anullsrc \
+                 -shortest \
+                 -c:v libx264 -c:a aac \
+                 public/test-video.mp4 -y
+          ls -lh public
 
       - name: Run upload script (private test)
         env:
@@ -81,41 +88,35 @@ jobs:
             }
           }'
 
-          echo "Metadata JSON:"
           echo "$metadata" | jq .
 
           echo "=== STEP 2: Start resumable upload session ==="
-          response_headers=$(mktemp)
+          headers_file=$(mktemp)
 
           curl -s -X POST \
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             -H "Content-Type: application/json; charset=UTF-8" \
             -H "X-Upload-Content-Type: video/mp4" \
             -d "${metadata}" \
-            -D "$response_headers" \
+            -D "$headers_file" \
             -o /dev/null \
             "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
 
           echo "Response headers:"
-          cat "$response_headers"
+          cat "$headers_file"
 
-          session_url=$(grep -i "^Location:" "$response_headers" | awk '{print $2}' | tr -d '\r')
+          session_url=$(grep -i "^Location:" "$headers_file" | awk '{print $2}' | tr -d '\r')
 
           if [ -z "$session_url" ]; then
-            echo "❌ ERROR: Google did not return a resumable upload session URL."
-            echo "This ALWAYS means one of the following:"
-            echo "  1) Missing scope (must include youtube.upload)"
-            echo "  2) OAuth app not authorized for this user (Test User missing)"
-            echo "  3) YouTube Data API v3 not enabled"
+            echo "❌ ERROR: No resumable upload session URL returned."
             exit 1
           fi
 
-          echo "Session URL:"
-          echo "$session_url"
+          echo "Session URL: $session_url"
 
           echo "=== STEP 3: Upload video file ==="
           if [ ! -f ./public/test-video.mp4 ]; then
-            echo "❌ ERROR: test-video.mp4 not found."
+            echo "❌ ERROR: public/test-video.mp4 not found."
             exit 1
           fi
 
@@ -128,7 +129,6 @@ jobs:
           echo "Upload response:"
           echo "$upload_response" | jq .
 
-          echo "=== STEP 4: Extract videoId (if present) ==="
           video_id=$(echo "$upload_response" | jq -r '.id // empty')
 
           if [ -z "$video_id" ]; then
@@ -136,7 +136,7 @@ jobs:
           else
             echo "🎉 SUCCESS — Uploaded videoId: $video_id"
           fi
-          
-      - name: Post-run cleanup and summary
+
+      - name: Summary
         run: |
-          echo "Upload test completed. Check previous steps for token exchange and upload response."
+          echo "YouTube upload test workflow completed."
