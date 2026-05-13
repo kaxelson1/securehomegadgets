@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://securehomegadgets.com/sitemap.xml
