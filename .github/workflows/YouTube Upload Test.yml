@@ -68,31 +68,75 @@ jobs:
           ACCESS_TOKEN: ${{ env.access_token }}
         run: |
           set -euo pipefail
-          # Preferred: use your repo script that accepts an access token.
-          if [ -x ./scripts/upload_to_youtube.sh ]; then
-            ./scripts/upload_to_youtube.sh --access-token "${ACCESS_TOKEN}" --file ./public/test-video.mp4 --title "CI test upload" --privacyStatus "private"
-          else
-            # Minimal resumable upload example (replace metadata as needed).
-            # 1) Start a resumable session
-            metadata='{"snippet":{"title":"CI test upload","description":"Private test upload from Actions","tags":["ci","test"]},"status":{"privacyStatus":"private"}}'
-            session_url=$(curl -s -X POST \
-              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-              -H "Content-Type: application/json; charset=UTF-8" \
-              -H "X-Upload-Content-Type: video/*" \
-              -d "${metadata}" \
-              "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status" -D - | awk '/^Location: /{print $2}' | tr -d '\r')
-            if [ -z "$session_url" ]; then
-              echo "Failed to obtain upload session URL"
-              exit 1
-            fi
-            # 2) Upload the file (simple single-chunk)
-            if [ -f ./public/test-video.mp4 ]; then
-              curl -s -X PUT -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: video/mp4" --data-binary @./public/test-video.mp4 "$session_url" | jq -r .
-            else
-              echo "No test video found to upload; created placeholder. Skipping upload."
-            fi
+
+          echo "=== STEP 1: Build metadata JSON ==="
+          metadata='{
+            "snippet": {
+              "title": "CI test upload",
+              "description": "Private test upload from GitHub Actions",
+              "tags": ["ci","test"]
+            },
+            "status": {
+              "privacyStatus": "private"
+            }
+          }'
+
+          echo "Metadata JSON:"
+          echo "$metadata" | jq .
+
+          echo "=== STEP 2: Start resumable upload session ==="
+          response_headers=$(mktemp)
+
+          curl -s -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json; charset=UTF-8" \
+            -H "X-Upload-Content-Type: video/mp4" \
+            -d "${metadata}" \
+            -D "$response_headers" \
+            -o /dev/null \
+            "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status"
+
+          echo "Response headers:"
+          cat "$response_headers"
+
+          session_url=$(grep -i "^Location:" "$response_headers" | awk '{print $2}' | tr -d '\r')
+
+          if [ -z "$session_url" ]; then
+            echo "❌ ERROR: Google did not return a resumable upload session URL."
+            echo "This ALWAYS means one of the following:"
+            echo "  1) Missing scope (must include youtube.upload)"
+            echo "  2) OAuth app not authorized for this user (Test User missing)"
+            echo "  3) YouTube Data API v3 not enabled"
+            exit 1
           fi
 
+          echo "Session URL:"
+          echo "$session_url"
+
+          echo "=== STEP 3: Upload video file ==="
+          if [ ! -f ./public/test-video.mp4 ]; then
+            echo "❌ ERROR: test-video.mp4 not found."
+            exit 1
+          fi
+
+          upload_response=$(curl -s -X PUT \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: video/mp4" \
+            --data-binary @./public/test-video.mp4 \
+            "$session_url")
+
+          echo "Upload response:"
+          echo "$upload_response" | jq .
+
+          echo "=== STEP 4: Extract videoId (if present) ==="
+          video_id=$(echo "$upload_response" | jq -r '.id // empty')
+
+          if [ -z "$video_id" ]; then
+            echo "⚠️ Upload completed but no videoId returned."
+          else
+            echo "🎉 SUCCESS — Uploaded videoId: $video_id"
+          fi
+          
       - name: Post-run cleanup and summary
         run: |
           echo "Upload test completed. Check previous steps for token exchange and upload response."
