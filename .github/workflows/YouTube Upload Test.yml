@@ -1,0 +1,41 @@
+name: YouTube Upload Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  youtube-test:
+    runs-on: ubuntu-latest
+    env:
+      YT_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Exchange refresh token for access token
+        id: token
+        run: |
+          resp=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            -d client_id="${YT_CLIENT_ID}" \
+            -d client_secret="${YT_CLIENT_SECRET}" \
+            -d refresh_token="${YT_REFRESH_TOKEN}" \
+            -d grant_type=refresh_token)
+          echo "$resp" | jq -r '.access_token' > access_token.txt
+          echo "access_token=$(cat access_token.txt)" >> $GITHUB_OUTPUT
+          echo "Full response: $resp"
+
+      - name: Show token info (sanitized)
+        run: |
+          ACCESS_TOKEN="${{ steps.token.outputs.access_token }}"
+          curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${ACCESS_TOKEN}" | jq -r .
+
+      - name: Run upload script (private test)
+        env:
+          ACCESS_TOKEN: ${{ steps.token.outputs.access_token }}
+        run: |
+          # Ensure ./scripts/upload_to_youtube.sh exists and accepts --access-token and --privacyStatus
+          # Use a very small test file or a dry-run mode if your script supports it
+          ./scripts/upload_to_youtube.sh --access-token "${ACCESS_TOKEN}" --file ./public/test-video.mp4 --title "CI test upload" --privacyStatus "private"
