@@ -1,0 +1,5 @@
+- name: Verify token scopes
+  run: |
+    ACCESS_TOKEN="${{ env.access_token }}"
+    curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+      "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${ACCESS_TOKEN}" | jq -r .
