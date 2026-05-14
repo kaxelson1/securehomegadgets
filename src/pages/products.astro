@@ -1,0 +1,169 @@
+---
+import fs from 'fs';
+import path from 'path';
+
+const productsPath = path.resolve('./src/data/products.json');
+let products = [];
+if (fs.existsSync(productsPath)) {
+  const productsData = JSON.parse(fs.readFileSync(productsPath, 'utf-8'));
+  products = productsData.products;
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recommended Home Security Products | Secure Home Gadgets</title>
+    <meta name="description" content="Our top-rated smart home security products with affiliate links to Amazon and Best Buy." />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+      }
+      header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+      header a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.1rem;
+      }
+      header a:hover {
+        text-decoration: underline;
+      }
+
+      section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+      section h2 {
+        color: #667eea;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+      }
+      .product {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+      }
+      .product:hover {
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+        transform: translateY(-4px);
+      }
+      .product h3 {
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+      .category {
+        color: #667eea;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+      }
+      .price {
+        font-size: 1.8rem;
+        color: #667eea;
+        font-weight: 700;
+        margin: 1rem 0;
+      }
+      .links {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      .links a {
+        flex: 1;
+        padding: 0.75rem;
+        background: #667eea;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .links a:hover {
+        background: #764ba2;
+        transform: scale(1.05);
+      }
+
+      footer {
+        text-align: center;
+        color: white;
+        padding: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>🛍️ Recommended Products</h1>
+        <p>Our top-rated home security gadgets with affiliate links</p>
+        <a href="/">← Back to Home</a>
+      </header>
+
+      <section>
+        <h2>Smart Home Security Products</h2>
+        <div class="products-grid">
+          {products.length > 0 ? (
+            products.map((product) => (
+              <div class="product">
+                <h3>{product.name}</h3>
+                {product.trending && <div style="color:#ff5a5f;font-weight:700;margin-bottom:0.5rem;">Trending</div>}
+                <div class="category">{product.category}</div>
+                <div class="price">{product.price}</div>
+                <div class="links">
+                  <a href={product.amazon} target="_blank" rel="noopener noreferrer">Amazon</a>
+                  <a href={product.bestbuy} target="_blank" rel="noopener noreferrer">Best Buy</a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>Products database is being populated. Check back soon!</p>
+          )}
+        </div>
+      </section>
+
+      <section style="background: #f0f4ff; border: 2px solid #667eea;">
+        <h2>📝 Affiliate Disclosure</h2>
+        <p>
+          Secure Home Gadgets is a participant in the Amazon Associates Program, Best Buy Affiliate Program, and other affiliate networks. We may earn a commission when you click our links and make a purchase. This does not affect the price you pay, and helps us continue creating helpful content.
+        </p>
+      </section>
+
+      <footer>
+        <p>&copy; 2026 Secure Home Gadgets</p>
+      </footer>
+    </main>
+  </body>
+</html>

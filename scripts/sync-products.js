@@ -1,0 +1,78 @@
+import fs from 'fs';
+import path from 'path';
+
+const affiliateProducts = [
+  {
+    id: 'ring-video-doorbell-5',
+    name: 'Ring Video Doorbell 5',
+    category: 'Video Doorbell',
+    amazon: 'https://www.amazon.com/Ring-Video-Doorbell-5/dp/B0B8P2GV4X',
+    bestbuy: 'https://www.bestbuy.com/site/ring-video-doorbell-5/6505398.p',
+    price: '$209.99',
+    trending: true,
+    description: 'The latest viral Ring doorbell with full color video and lightning-fast alerts.'
+  },
+  {
+    id: 'arlo-pro-5-floodlight',
+    name: 'Arlo Pro 5 Floodlight Camera',
+    category: 'Outdoor Camera',
+    amazon: 'https://www.amazon.com/Arlo-Outdoor-Wireless-White-994-1200S/dp/B0B8V8ZSQR',
+    bestbuy: 'https://www.bestbuy.com/site/arlo-pro-5-floodlight-camera/6533731.p',
+    price: '$279.99',
+    trending: true,
+    description: 'A trending spotlight camera that is currently viral for its pro-level security performance.'
+  },
+  {
+    id: 'nest-cam-battery',
+    name: 'Google Nest Cam (Battery)',
+    category: 'Smart Camera',
+    amazon: 'https://www.amazon.com/Google-Nest-Battery-Camera/dp/B0885V3GM5',
+    bestbuy: 'https://www.bestbuy.com/site/google-nest-cam-battery/6455383.p',
+    price: '$179.00',
+    trending: true,
+    description: 'A viral battery-powered camera with intelligent alerts and seamless Google integration.'
+  },
+  {
+    id: 'wyze-cam-v3',
+    name: 'Wyze Cam v3',
+    category: 'Indoor/Outdoor Camera',
+    amazon: 'https://www.amazon.com/Wyze-Cam-v3-Wireless-Assistant/dp/B08ZD6W5YJ',
+    bestbuy: 'https://www.bestbuy.com/site/wyze-cam-v3-wireless-security-camera/6464255.p',
+    price: '$35.98',
+    trending: true,
+    description: 'One of the most viral budget cameras for 2026, famous for its color night vision.'
+  },
+  {
+    id: 'eufy-solocam-s330',
+    name: 'Eufy SoloCam S330',
+    category: 'Wire-Free Camera',
+    amazon: 'https://www.amazon.com/Eufy-SoloCam-S330-ColorNight-Vision/dp/B0C7S4H5CW',
+    bestbuy: 'https://www.bestbuy.com/site/eufy-solocam-s330-wireless-video-doorbell/6512255.p',
+    price: '$299.99',
+    trending: true,
+    description: 'A hot trending wireless camera with AI detection and 4K imagery.'
+  },
+];
+
+const dbPath = path.resolve('./src/data/products.json');
+const dbDir = path.dirname(dbPath);
+
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+fs.writeFileSync(
+  dbPath,
+  JSON.stringify(
+    {
+      lastSync: new Date().toISOString(),
+      products: affiliateProducts,
+    },
+    null,
+    2
+  ),
+  'utf-8'
+);
+
+console.log(`✓ Synced ${affiliateProducts.length} affiliate products`);
+console.log(`Database: ${dbPath}`);
