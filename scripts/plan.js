@@ -1,15 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { createOpenAIClient } from './openai-client.js';
 
-dotenv.config();
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-if (!OPENAI_API_KEY) {
-  console.error('Missing OPENAI_API_KEY in .env');
-  process.exit(1);
-}
+const client = createOpenAIClient();
 
 const keyword = process.argv.slice(2).join(' ').trim();
 if (!keyword) {
@@ -17,7 +10,6 @@ if (!keyword) {
   process.exit(1);
 }
 
-const client = new OpenAI({ apiKey: OPENAI_API_KEY });
 const prompt = `Generate 5 unique blog post titles and target keyword phrases for an AI-powered home security gadgets website. Return JSON only as an array of strings.`;
 
 async function generatePlan() {

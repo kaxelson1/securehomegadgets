@@ -2,7 +2,7 @@ name: AI Content Generation & YouTube Shorts
 
 on:
   schedule:
-    - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+    - cron: '0 17 * * 1'  # Every Monday at 12:00 PM Eastern Standard Time (UTC-5)
   workflow_dispatch: []
 
 jobs:

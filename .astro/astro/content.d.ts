@@ -141,9 +141,44 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"articles": {
+"arlo-pro-5-floodlight.md": {
+	id: "arlo-pro-5-floodlight.md";
+  slug: "arlo-pro-5-floodlight";
+  body: string;
+  collection: "articles";
+  data: any
+} & { render(): Render[".md"] };
+"eufy-solocam-s330.md": {
+	id: "eufy-solocam-s330.md";
+  slug: "eufy-solocam-s330";
+  body: string;
+  collection: "articles";
+  data: any
+} & { render(): Render[".md"] };
+"nest-cam-battery.md": {
+	id: "nest-cam-battery.md";
+  slug: "nest-cam-battery";
+  body: string;
+  collection: "articles";
+  data: any
+} & { render(): Render[".md"] };
+"ring-video-doorbell-5.md": {
+	id: "ring-video-doorbell-5.md";
+  slug: "ring-video-doorbell-5";
+  body: string;
+  collection: "articles";
+  data: any
+} & { render(): Render[".md"] };
 "welcome-to-secure-home-gadgets.md": {
 	id: "welcome-to-secure-home-gadgets.md";
   slug: "welcome-to-secure-home-gadgets";
+  body: string;
+  collection: "articles";
+  data: any
+} & { render(): Render[".md"] };
+"wyze-cam-v3.md": {
+	id: "wyze-cam-v3.md";
+  slug: "wyze-cam-v3";
   body: string;
   collection: "articles";
   data: any

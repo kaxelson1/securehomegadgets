@@ -1,17 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { createOpenAIClient } from './openai-client.js';
 
-dotenv.config();
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!OPENAI_API_KEY) {
-  console.error('Missing OPENAI_API_KEY in .env');
-  process.exit(1);
-}
-
-const client = new OpenAI({ apiKey: OPENAI_API_KEY });
+const client = createOpenAIClient();
 const articleSlug = process.argv[2];
 
 if (!articleSlug) {

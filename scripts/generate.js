@@ -1,19 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { createOpenAIClient } from './openai-client.js';
 
-dotenv.config();
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const client = createOpenAIClient();
 const SITE_URL = process.env.SITE_URL || 'https://securehomegadgets.com';
-
-if (!OPENAI_API_KEY) {
-  console.error('Missing OPENAI_API_KEY in .env');
-  process.exit(1);
-}
-
-const client = new OpenAI({ apiKey: OPENAI_API_KEY });
 const keyword = process.argv.slice(2).join(' ').trim();
 
 if (!keyword) {

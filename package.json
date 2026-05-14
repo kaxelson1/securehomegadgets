@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "generate:content": "node scripts/generate-article.js",
+    "generate:content": "node scripts/generate.js",
     "generate:shorts": "node scripts/generate-shorts.js",
     "plan:topics": "node scripts/plan-topics.js",
     "approve:shorts": "node scripts/approve-shorts.js",
